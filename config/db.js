@@ -3,8 +3,7 @@ import mongoose from "mongoose";
 // MongoDB connection URI
 const MONGODB_URI =
   "mongodb+srv://earnsingh1:aTtyutc2LJR3w5eT@cluster0.7a1dkzy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-console.log(MONGODB_URI);
-// Connect to MongoDB
+
 const connectDB = async () => {
   try {
     await mongoose.connect(MONGODB_URI, {
