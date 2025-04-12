@@ -1,21 +1,40 @@
 import Leave from "../modals/leavesModal.js";
-import cloudinary from "../config /cloudinary.js";
-// Create new leave request
+import cloudinary from "../config/cloudinary.js";
+// Create new leavecloudinary request
 export const createLeave = async (req, res) => {
   try {
     let documentUrl = null;
 
-    // Upload document to Cloudinary if it exists
-    if (req.body.documents) {
-      const uploadResponse = await cloudinary.uploader.upload(
-        req.body.documents,
-        {
-          folder: "leaves_documents",
-          resource_type: "auto",
-          allowed_formats: ["pdf", "doc", "docx", "jpg", "jpeg", "png"],
-        }
-      );
-      documentUrl = uploadResponse.secure_url;
+    // Handle file upload with proper error checking
+    if (req.files && req.files.documents) {
+      const file = req.files.documents;
+
+      // Validate file type
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      ];
+      if (!allowedTypes.includes(file.mimetype)) {
+        return res.status(400).json({ message: "Invalid file type" });
+      }
+
+      // Upload to cloudinary
+      try {
+        const uploadResponse = await cloudinary.uploader.upload(
+          file.tempFilePath,
+          {
+            folder: "leaves_documents",
+            resource_type: "auto",
+          }
+        );
+        documentUrl = uploadResponse.secure_url;
+      } catch (uploadError) {
+        console.error("Cloudinary upload error:", uploadError);
+        return res.status(400).json({ message: "File upload failed" });
+      }
     }
 
     const newLeave = new Leave({
@@ -25,14 +44,15 @@ export const createLeave = async (req, res) => {
       designation: req.body.designation,
       date: req.body.date,
       reason: req.body.reason,
-      documents: documentUrl, // Save Cloudinary URL instead of raw document
+      documents: documentUrl,
       status: "Pending",
     });
 
     const savedLeave = await newLeave.save();
     res.status(201).json(savedLeave);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Leave creation error:", error);
+    res.status(500).json({ message: "Failed to create leave request" });
   }
 };
 
