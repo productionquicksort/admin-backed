@@ -1,36 +1,24 @@
 import Leave from "../modals/leavesModal.js";
 import cloudinary from "../config/cloudinary.js";
-// Create new leavecloudinary request
+
 export const createLeave = async (req, res) => {
   try {
     let documentUrl = null;
-
-    // Handle file upload with proper error checking
-    if (req.files && req.files.documents) {
-      const file = req.files.documents;
-
-      // Validate file type
-      const allowedTypes = [
-        "image/jpeg",
-        "image/png",
-        "application/pdf",
-        "application/msword",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      ];
-      if (!allowedTypes.includes(file.mimetype)) {
-        return res.status(400).json({ message: "Invalid file type" });
-      }
-
-      // Upload to cloudinary
+    if (req.file) {
       try {
-        const uploadResponse = await cloudinary.uploader.upload(
-          file.tempFilePath,
-          {
-            folder: "leaves_documents",
-            resource_type: "auto",
-          }
-        );
-        documentUrl = uploadResponse.secure_url;
+        const b64 = Buffer.from(req.file.buffer).toString("base64");
+        const dataURI = `data:${req.file.mimetype};base64,${b64}`;
+
+        const uploadResponse = await cloudinary.uploader.upload(dataURI, {
+          folder: "leaves_documents",
+          resource_type: "auto",
+        });
+
+        documentUrl = {
+          url: uploadResponse.secure_url,
+          public_id: uploadResponse.public_id,
+          originalName: req.file.originalname,
+        };
       } catch (uploadError) {
         console.error("Cloudinary upload error:", uploadError);
         return res.status(400).json({ message: "File upload failed" });

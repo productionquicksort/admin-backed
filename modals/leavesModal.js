@@ -33,8 +33,18 @@ const leaveSchema = new mongoose.Schema(
       default: "Pending",
     },
     documents: {
-      type: String,
-      required: false,
+      url: {
+        type: String,
+        required: false,
+      },
+      public_id: {
+        type: String,
+        required: false,
+      },
+      originalName: {
+        type: String,
+        required: false,
+      },
     },
   },
   {
