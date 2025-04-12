@@ -1,6 +1,8 @@
 import Attendance from "../modals/attendanceModal.js";
 import Candidate from "../modals/candiadateModal.js";
 import Employee from "../modals/employesModal.js";
+import cloudinary from "../config/cloudinary.js";
+import fs from "fs";
 
 // Get all candidates
 const getCandidates = async (req, res) => {
@@ -70,22 +72,72 @@ const getCandidate = async (req, res) => {
   }
 };
 
-// Create new candidate
 const createCandidate = async (req, res) => {
   try {
-    // Create a new body object without resume if it's not provided
     const candidateData = { ...req.body };
-    console.log(candidateData);
-    if (!candidateData.resume) {
-      delete candidateData.resume;
+
+    if (req.file) {
+      try {
+        const result = await cloudinary.uploader
+          .upload_stream(
+            {
+              folder: "resumes",
+              resource_type: "raw",
+              allowed_formats: ["pdf", "doc", "docx"],
+            },
+            (error, result) => {
+              if (error) {
+                return res.status(400).json({
+                  success: false,
+                  message: "Resume upload failed",
+                  error: error.message,
+                });
+              }
+
+              // Add resume details to candidate data
+              candidateData.resume = {
+                url: result.secure_url,
+                public_id: result.public_id,
+                originalName: req.file.originalname,
+              };
+              // Create candidate after successful upload
+              Candidate.create(candidateData)
+                .then((candidate) => {
+                  res.status(201).json({
+                    success: true,
+                    data: candidate,
+                  });
+                })
+                .catch((error) => {
+                  if (error.code === 11000) {
+                    return res.status(400).json({
+                      success: false,
+                      message: "Email already exists",
+                    });
+                  }
+                  res.status(400).json({
+                    success: false,
+                    message: error.message,
+                  });
+                });
+            }
+          )
+          .end(req.file.buffer);
+      } catch (uploadError) {
+        return res.status(400).json({
+          success: false,
+          message: "Resume upload failed",
+          error: uploadError.message,
+        });
+      }
+    } else {
+      // Create candidate without resume
+      const candidate = await Candidate.create(candidateData);
+      res.status(201).json({
+        success: true,
+        data: candidate,
+      });
     }
-
-    const candidate = await Candidate.create(candidateData);
-
-    res.status(201).json({
-      success: true,
-      data: candidate,
-    });
   } catch (error) {
     if (error.code === 11000) {
       return res.status(400).json({
@@ -93,7 +145,6 @@ const createCandidate = async (req, res) => {
         message: "Email already exists",
       });
     }
-
     res.status(400).json({
       success: false,
       message: error.message,

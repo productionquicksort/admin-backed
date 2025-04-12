@@ -7,6 +7,7 @@ import {
 } from "../controller/candidateController.js";
 
 import express from "express";
+import upload from "../middleware/multerConfig.js";
 
 const router = express.Router();
 
@@ -17,7 +18,7 @@ router.get("/", getCandidates);
 router.get("/:id", getCandidate);
 
 // Create new candidate
-router.post("/", createCandidate);
+router.post("/", upload.single('resume'), createCandidate);
 
 // Update candidate
 router.put("/:id", updateCandidate);

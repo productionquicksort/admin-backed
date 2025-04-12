@@ -29,8 +29,9 @@ const candidateSchema = new mongoose.Schema(
       default: "New",
     },
     resume: {
-      type: String,
-      default: null,
+      url: String,
+      public_id: String,
+      originalName: String,
     },
     experience: {
       type: Number,
