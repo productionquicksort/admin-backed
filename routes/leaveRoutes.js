@@ -6,12 +6,11 @@ import {
 } from "../controller/leaveController.js";
 
 import express from "express";
-import upload from "../config /multer.js";
 
 const router = express.Router();
 
 // Create new leave request with document upload
-router.post("/create", upload.single("documents"), createLeave);
+router.post("/create", createLeave);
 
 // Get all leaves
 router.get("/all", getAllLeaves);
