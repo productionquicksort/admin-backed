@@ -149,7 +149,6 @@ export const searchEmployees = async (req, res) => {
 };
 
 export {
-  loginEmployee,
   createEmployee,
   getAllEmployees,
   getEmployeeById,
