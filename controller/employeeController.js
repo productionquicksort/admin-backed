@@ -2,30 +2,6 @@ import Employee from "../modals/employesModal.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-// @desc    Login employee
-// @route   POST /api/employees/login
-const loginEmployee = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const employee = await Employee.findOne({ email });
-
-    if (employee && (await bcrypt.compare(password, employee.password))) {
-      res.json({
-        _id: employee._id,
-        fullName: employee.fullName,
-        email: employee.email,
-        token: generateToken(employee._id),
-      });
-    } else {
-      res.status(401).json({ message: "Invalid email or password" });
-    }
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc    Create new employee
-// @route   POST /api/employees/register
 const createEmployee = async (req, res) => {
   try {
     const {
